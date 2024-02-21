@@ -26,9 +26,9 @@ alpha = 0.2
 N = 10
 
 # Importing the dataset
-samples = pd.read_csv('../datasets/original_clean.csv')
+samples = pd.read_csv('../datasets/covid_original.csv')
 samples = samples.dropna()
-shift_samples = pd.read_csv('../datasets/replication_clean.csv')
+shift_samples = pd.read_csv('../datasets/covid_replication.csv')
 shift_samples = shift_samples.dropna()
 
 features = ['id', 'real', 'treatment', 'hispanic',"attentive","social_conserv","covid_concern_1","mms","crt_acc","sciknow","demrep","gender","age"]
@@ -69,8 +69,6 @@ for seed in range(N):
     y=all_samples[:,dim]
     X_train,X_test,y_train,y_test = train_test_split(X, y, test_size=0.5, random_state = this_seed)
     samples = np.concatenate([X_train,y_train.reshape(-1,1)],axis=1)
-    #train_row_index = np.random.choice(len(samples), size=n, replace=False)
-    #train_data_ = samples[train_row_index,:]
     obj = Conformal_Prediction(samples, alpha, rho, 'chi_square', "cmr")
     samples = np.concatenate([X_test,y_test.reshape(-1,1)],axis=1)
     X = all_shiftsamples[:,:dim]
@@ -79,8 +77,6 @@ for seed in range(N):
     shiftsamples = np.concatenate([X_test,y_test.reshape(-1,1)],axis=1)
     obj.initial(samples[:,:-1],shiftsamples[:,:-1],samples[:,-1],'random_forest', 'random_forest')
     shiftsamples=np.concatenate([X_train,y_train.reshape(-1,1)],axis=1)
-    #shift_row_index=np.random.choice(len(shiftsamples),size=m,replace=False)
-    #shift_data_=shiftsamples[shift_row_index]
     for type in ['0', '1', '2', '3', '4']:
         if type=='0':
             li=li0
@@ -100,15 +96,12 @@ for seed in range(N):
         count=0
         lenth=0
         for shiftsample in shiftsamples:
-        ##for shiftsample in shift_data_:
             bool, quant = obj.one_test(shiftsample,type)
             if bool:
                 count+=1
             lenth += quant
         li[seed]=count/shiftsamples.shape[0]
         length[seed]=2*lenth/shiftsamples.shape[0]
-        #li[seed]=count/m
-        #length[seed]=2*lenth/m
 
 coverage = np.transpose(np.array([li0,li1,li2,li3,li4]))
 lens = np.transpose(np.array([len0,len1,len2,len3,len4]))
@@ -121,23 +114,3 @@ set_name = 'covid_rho_' + str(rho*1000) + '_grp_' + str(seed_group)
 coverage.to_csv('../results/' + set_name + '_cov.csv')
 lens.to_csv('../results/' + set_name +  '_lens.csv')
 
-"""
-mdl = RandomForestClassifier()
-merged_X=np.concatenate([all_samples[:,:-1],all_shiftsamples[:,:-1]],axis=0)
-label0=np.zeros(all_samples.shape[0])
-label1=np.ones(all_shiftsamples.shape[0])
-P0 = all_samples.shape[0]
-P1 = all_shiftsamples.shape[0]
-merged_label=np.concatenate([label0,label1])
-mdl.fit(merged_X,merged_label)
-pr = mdl.predict_proba(merged_X)
-rho_x = np.mean(f_chi((P0/P1)*(pr[:P0,1]/pr[:P0,0])).mean())
-
-mdl1 = RandomForestClassifier()
-merged_all=np.concatenate([all_samples,all_shiftsamples],axis=0)
-mdl1.fit(merged_all,merged_label)
-pr = mdl1.predict_proba(merged_all)
-rho_all = np.mean(f_chi((P0/P1)*(pr[:P0,1]/pr[:P0,0])).mean())
-rho_all 
-rho_x
-"""

@@ -20,8 +20,8 @@ rho = params_grid[task_id]['rho']
 seed_group = params_grid[task_id]['grp']
 
 """ Load dataset """
-X0, y0, feature_names = get_data("income", "NY", False, './datasets/acs/', 2018)
-X1, y1, feature_names = get_data("income", "SD", False, './datasets/acs/', 2018)
+X0, y0, feature_names = get_data("income", "NY", False, '../datasets/acs/', 2018)
+X1, y1, feature_names = get_data("income", "SD", False, '../datasets/acs/', 2018)
 all_samples = np.concatenate([X0,y0.reshape(-1,1)],axis=1)
 all_shiftsamples = np.concatenate([X1,y1.reshape(-1,1)],axis=1)
 dim = X0.shape[1]
@@ -73,7 +73,6 @@ for seed in range(N):
     shift_row_index=np.random.choice(np.shape(shiftsamples)[0],size=m,replace=False)
     shift_data_=shiftsamples[shift_row_index]
     for type in ['0', '1', '2', '3', '4']:
-    #for type in ['0']:
         if type=='0':
             li=li0
             length=length0
@@ -91,14 +90,11 @@ for seed in range(N):
             length=length4
         count = 0
         lens = 0
-        ##for shiftsample in shiftsamples:
         for shiftsample in shift_data_:
             bool, len=obj.one_test(shiftsample,type)
             if bool:
                 count+=1
             lens += len
-        #li[seed]=count/shiftsamples.shape[0]
-        #length[seed] = lens/shiftsamples.shape[0]
         li[seed]=count/m
         length[seed] = lens/m
 
@@ -113,17 +109,3 @@ set_name = 'acsincome_ny_sd_rho_' + str(rho*1000) + '_grp_' + str(seed_group)
 coverage.to_csv('../results/' + set_name + '_cov.csv')
 lens.to_csv('../results/' + set_name +  '_lens.csv')
 
-"""
-rho = 0.1  
-li2
-li3
-li4
-length3
-obj.shiftrho
-
-import xgboost as xgb
-from whyshift import risk_region
-source_model = xgb.XGBClassifier()
-target_model = xgb.XGBClassifier()
-risk_region('xgb', source_model, target_model, 'income', 'CA', 'PR', "./datasets/acs")
-"""
