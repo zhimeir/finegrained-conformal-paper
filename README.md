@@ -1,6 +1,6 @@
 # finegrained-conformal-paper
 This repository contains the code to reproduce the numerical results in 
-[*Not all distributional shifts are equal: Fine-grained robust conformal inference*](https://arxiv.org/abs/2402.13042).
+[Not all distributional shifts are equal: Fine-grained robust conformal inference](https://arxiv.org/abs/2402.13042).
 
 
 ## Folders
