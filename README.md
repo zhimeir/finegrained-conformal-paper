@@ -46,4 +46,4 @@ python3 covid.py 1
 from the [qosa-index](https://gitlab.com/qosa_index) package.
 - The ACS income dataset 
 and corresponding models are obtained from [WhyShift](https://github.com/namkoong-lab/whyshift/tree/main/whyshift).
-- We use the COVID information datasets available at [awesome-replicability-data](https://github.com/ying531/awesome-replicability-data). 
+- The COVID information datasets are from [awesome-replicability-data](https://github.com/ying531/awesome-replicability-data). 
