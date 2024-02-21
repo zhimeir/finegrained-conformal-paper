@@ -13,7 +13,7 @@ This repository contains the code to reproduce the numerical results in
     - `nslm.py` reproduces the results in Section 6.1.
     - `acs_income.py` reproduces the results in Sectin 6.2.
     - `covid.py` reproduces the results in Section 6.3.
-- `results/`: stores the all the output files.
+- `results/`: stores all the output files.
 
 ## Getting started
 To set up the virtual environment, run the following command in terminal:
@@ -22,30 +22,28 @@ source ./scripts/venv3115/bin/activate
 ```
 
 ## Running the code 
-To reproduce one run the simulation, execute the following command in terminal:
+To reproduce one run of the simulation, execute the following command in terminal:
 ```
 cd scripts
 python3 simulation.py 1
 ```
-To reproduce one run the experiment on the NSLM dataset, execute the following command in terminal:
+To reproduce one run of the experiment on the NSLM dataset, execute the following command in terminal:
 ```
-cd scripts
 python3 nslm.py 1
 ```
-To reproduce one run the experiment on the ACS income dataset, execute the following command in terminal:
+To reproduce one run of the experiment on the ACS income dataset, execute the following command in terminal:
 ```
-cd scripts
 python3 acs_income.py 1
 ```
 
-To reproduce one run the experiment on the COVID dataset, execute the following command in terminal:
+To reproduce one run of the experiment on the COVID dataset, execute the following command in terminal:
 ```
-cd scripts
 python3 covid.py 1
 ```
 
 ### Acknowledgment
-The code for estimating the conditional cumulative distribution function is 
-from [qosa-index](https://gitlab.com/qosa_index) package. The ACS income dataset 
+- The code for estimating the conditional cumulative distribution function is 
+from the [qosa-index](https://gitlab.com/qosa_index) package.
+- The ACS income dataset 
 and corresponding models are obtained from [WhyShift](https://github.com/namkoong-lab/whyshift/tree/main/whyshift).
-We use the COVID information datasets available at [awesome-replicability-data](https://github.com/ying531/awesome-replicability-data). 
+- We use the COVID information datasets available at [awesome-replicability-data](https://github.com/ying531/awesome-replicability-data). 
