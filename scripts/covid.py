@@ -22,8 +22,8 @@ rho = params_grid[task_id]['rho']
 seed_group = params_grid[task_id]['grp']
 
 """ Parameters """
-alpha = 0.2
-N = 10
+alpha = 0.2 # level of the test
+N = 10 # number of the seed
 
 # Importing the dataset
 samples = pd.read_csv('../datasets/covid_original.csv')
@@ -40,6 +40,8 @@ all_samples = np.concatenate([X0,Y0],axis=1)
 all_shiftsamples = np.concatenate([X1,Y1],axis=1)
 
 dim = X0.shape[1]
+
+""" Initialization """
 coverage = []
 lens = []
 
@@ -58,6 +60,7 @@ len4 = [0] * N
 n = 1500 
 m = 1000
 
+""" Main experiment """
 for seed in range(N):
 
     this_seed = seed_start = (seed_group - 1) * 20 + seed
