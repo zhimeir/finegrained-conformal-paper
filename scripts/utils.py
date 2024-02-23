@@ -9,6 +9,23 @@ warnings.filterwarnings("ignore", category=FutureWarning, message="`max_features
 
 class Conformal_Prediction:
     def __init__(self, samples, alpha, rho, f_type, score_type='cmr'):
+        """
+        Initializes a new instance of the Conformal_Prediction.
+
+        Args:
+        samples: the training sample from P
+        alpha: the level of prediction interval
+        rho: parameter to construct interval
+        f_type: the choice of f divergence
+                it should be chosen from ['kl','tv','chi_square']
+                - 'kl': KL divergence
+                - 'tv': Total variation distance
+                - 'chi_square': Chi-square divergence
+        score_type: the choice of score function
+                    it should be chosen from ['cmr','aps']
+                    - 'cmr': Conformal mean regression
+                    - 'aps': APS
+        """
         self.sample = samples
         self.alpha = alpha
         self.rho = rho
@@ -30,6 +47,18 @@ class Conformal_Prediction:
 
 
     def initial(self, X, shift_X, y, model_type, classifier_type):
+        """
+        fit weight function, outcome function and conditional cumulative distribution function
+
+        Args:
+        X: the training sample from P
+        shift_X: the training sample from Q
+        y: the training sample from P
+        model_type: the type of the outcome model to be fitted
+                    - 'linear','GAM','lasso','logistic','random_forest','random_forest_classifier'
+        classifier_type: the type of the classifier to estimate covariate shift
+                    - 'logistic','random_forest','xgb'
+        """
         self.get_w(X, shift_X, classifier_type)
         print("w done.")
         self.get_model(X, y, model_type)
@@ -40,7 +69,9 @@ class Conformal_Prediction:
         """
         get the weight function
         X: the training sample from P
-        shift_X: the training sample from Q   
+        shift_X: the training sample from Q 
+        classifier_type: the type of the classifier to estimate covariate shift
+                    - 'logistic','random_forest','xgb'
         """
         if classifier_type == 'logistic':
             mdl_classifier = LogisticRegressionCV(penalty='l1', solver = 'liblinear')
@@ -63,6 +94,9 @@ class Conformal_Prediction:
         X_dim=self.sample.shape[1]-1
         sample_X=self.sample[:,:X_dim]
         def w(x):
+            """
+            get the estimate weight of training sample X and test sample x
+            """
             X_all=np.concatenate([sample_X,x],axis=0)
             #p=rf_classifier.predict_proba(X_all)
             p = mdl_classifier.predict_proba(X_all)
@@ -73,7 +107,7 @@ class Conformal_Prediction:
         #p=rf_classifier.predict_proba(merged_X)
         p=mdl_classifier.predict_proba(merged_X)
         p = np.maximum(p, 1e-10) # avoid division by zero
-        self.shiftrho=self.rho+self.f((P0/P1)*(p[:P0,1]/p[:P0,0])).mean()
+        self.shiftrho=self.rho+self.f((P0/P1)*(p[:P0,1]/p[:P0,0])).mean()  #estimate parameter rho for robust CP
         self.shiftx=shift_X
 
     def get_model(self,X,y,model_type):
@@ -216,6 +250,18 @@ class Conformal_Prediction:
     
     
     def one_test(self,shift_sample,type):
+        """
+        test prediction interval for one test sample
+
+        Args:
+        shift_sample: test sample
+        type: the type of prediction interval
+            - '0': standard CP
+            - '1': weighted CP
+            - '2': robust CP
+            - '3': weighted robust CP
+            - '4': DR weighted robust CP
+        """
         shift_X = np.expand_dims(shift_sample[:-1],axis=0)
         shift_Y = shift_sample[-1]
         quant = self.get_interval(shift_X,type)
@@ -273,6 +319,9 @@ def quantile_weighted(seq, wseq, beta):
 
 
 def dr_quant(Ss,w,m,x,shiftx,q):
+    """
+        Compute quantiles in DR weighted robust CP
+    """
     def est_cov(t):
         if sum(w) <= 1e-5:
             return np.sum(m(shiftx,t))/shiftx.shape[0]
