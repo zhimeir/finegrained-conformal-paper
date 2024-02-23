@@ -17,7 +17,7 @@ seed_group = params_grid[task_id]['grp']
 
 
 """ Parameters """
-alpha = 0.2
+alpha = 0.2 # level of the test
 N = 5 ## number of seeds
 df = pd.read_csv('../datasets/nslm_semi_synthetic.csv')
 observe_feature = ['S3', 'C1', 'C2', 'C3', 'X3', 'X4', 'X5', 'Y1'] #, 'XC', 'X1', 'X2']
@@ -26,6 +26,9 @@ untreated = df[df['Z']==0]
 all_samples = treated[observe_feature].values
 all_shiftsamples = untreated[observe_feature].values
 dim = len(observe_feature)-1
+
+
+""" Initializations """
 coverage = []
 lens = []
 
