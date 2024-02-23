@@ -47,6 +47,7 @@ len4 = [0] * N
 # n = 1500 
 # m = 1000
 
+""" Main experiment """
 for seed in range(N):
 
     this_seed = seed_start = (seed_group - 1) * N + seed
