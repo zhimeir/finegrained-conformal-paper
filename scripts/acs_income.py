@@ -31,10 +31,10 @@ dim = X0.shape[1]
 
 
 """ Parameters """
-n = 1000
-m = 1000
-alpha = 0.2
-N = 10
+n = 1000 # training sample size
+m = 1000 # test sample size
+alpha = 0.2 # level of the test
+N = 10 # number of the seed
 
 """ Initialization """
 coverage = []
