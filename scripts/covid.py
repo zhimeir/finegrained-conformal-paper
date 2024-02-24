@@ -23,7 +23,7 @@ seed_group = params_grid[task_id]['grp']
 
 """ Parameters """
 alpha = 0.2 # level of the test
-N = 10 # number of the seed
+N = 10 # number of the seeds
 
 # Importing the dataset
 samples = pd.read_csv('../datasets/covid_original.csv')
