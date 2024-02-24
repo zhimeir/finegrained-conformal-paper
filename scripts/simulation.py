@@ -65,9 +65,16 @@ def get_shift_samples(m, coef, A, B, abs_quantile, eta):
     return np.array(l)
 
 def f(x):
+    
+    """
+        KL divergence
+    """
     return x*np.log(x)
 
 def invg(r,rho):
+    """
+        Caculate g_{f,rho}^{-1}(r)
+    """
     eps=1e-10
     left=r
     right=1
@@ -82,6 +89,9 @@ def invg(r,rho):
     return mid
 
 def sample_y(x, coef, abs_quantile, A, B):
+    """
+        Sample Y|X=x with Rejection Sampling
+    """
     #cov3=1-dim*c*c
     flag=1
     while flag:
@@ -91,6 +101,9 @@ def sample_y(x, coef, abs_quantile, A, B):
             return candidate_sample 
         
 def acpt_ratio(y,x,abs_quantile,A,B,coef):
+    """
+        Acceptance ratio
+    """
     if abs(y - np.sum(x * coef)) <= abs_quantile:
         return A
     else :
