@@ -34,7 +34,7 @@ dim = X0.shape[1]
 n = 1000 # training sample size
 m = 1000 # test sample size
 alpha = 0.2 # level of the test
-N = 10 # number of the seed
+N = 10 # number of the seeds
 
 """ Initialization """
 coverage = []
@@ -59,19 +59,19 @@ for seed in range(N):
     X = all_samples[:,:dim]
     y = all_samples[:,dim]
     X_train,X_test,y_train,y_test = train_test_split(X, y, test_size = n, random_state = this_seed)
-    samples = np.concatenate([X_train, y_train.reshape(-1,1)], axis=1) # training data
-    train_row_index = np.random.choice(np.shape(samples)[0], size = n, replace=False)
-    train_data_=samples[train_row_index,:]
+    samples = np.concatenate([X_train, y_train.reshape(-1,1)], axis=1) # whole training data
+    train_row_index = np.random.choice(np.shape(samples)[0], size = n, replace=False) 
+    train_data_=samples[train_row_index,:] # randomly select part of training data to construct prediction interval
     obj = Conformal_Prediction(train_data_, alpha, rho, 'chi_square', 'aps')
-    samples = np.concatenate([X_test, y_test.reshape(-1,1)], axis=1) # calibration data
+    samples = np.concatenate([X_test, y_test.reshape(-1,1)], axis=1) # calibration data for weight function, etc
     X = all_shiftsamples[:,:dim]
     y = all_shiftsamples[:,dim]
     X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=m, random_state = this_seed)
-    shiftsamples = np.concatenate([X_train,y_train.reshape(-1,1)],axis=1)
+    shiftsamples = np.concatenate([X_train,y_train.reshape(-1,1)],axis=1) # calibration data for weight function, etc
     obj.initial(samples[:,:-1],shiftsamples[:,:-1],samples[:,-1],'random_forest_classifier', 'xgb')
     shiftsamples=np.concatenate([X_test,y_test.reshape(-1,1)],axis=1)
     shift_row_index=np.random.choice(np.shape(shiftsamples)[0],size=m,replace=False)
-    shift_data_=shiftsamples[shift_row_index]
+    shift_data_=shiftsamples[shift_row_index] # randomly select part of test data to test prediction interval
     for type in ['0', '1', '2', '3', '4']:
         if type=='0':
             li=li0
