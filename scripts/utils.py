@@ -8,7 +8,7 @@ from scipy.stats import norm
 warnings.filterwarnings("ignore", category=FutureWarning, message="`max_features='auto'` has been deprecated*")
 
 class Conformal_Prediction:
-    def __init__(self, samples, alpha, rho, f_type, score_type='cmr'):
+    def __init__(self, samples, alpha, rho, f_type, score_type = 'cmr'):
         """
         Initializes a new instance of the Conformal_Prediction.
 
@@ -30,6 +30,7 @@ class Conformal_Prediction:
         self.alpha = alpha
         self.rho = rho
         self.score_type = score_type
+        self.f_type = f_type
 
         if f_type == 'kl':
             self.f = f_kl
@@ -46,7 +47,7 @@ class Conformal_Prediction:
             self.smax = 1
 
 
-    def initial(self, X, shift_X, y, model_type, classifier_type):
+    def initial(self, X, shift_X, y, model_type, classifier_type, tree_depth = None):
         """
         fit weight function, outcome function and conditional cumulative distribution function
 
@@ -59,13 +60,13 @@ class Conformal_Prediction:
         classifier_type: the type of the classifier to estimate covariate shift
                     - 'logistic','random_forest','xgb'
         """
-        self.get_w(X, shift_X, classifier_type)
+        self.get_w(X, shift_X, classifier_type, tree_depth)
         print("w done.")
         self.get_model(X, y, model_type)
         print("u done.")
         self.get_m(X, y)
 
-    def get_w(self,X,shift_X, classifier_type='logistic'):
+    def get_w(self,X,shift_X, classifier_type='logistic', tree_depth = None):
         """
         get the weight function
         X: the training sample from P
@@ -76,8 +77,7 @@ class Conformal_Prediction:
         if classifier_type == 'logistic':
             mdl_classifier = LogisticRegressionCV(penalty='l1', solver = 'liblinear')
         if classifier_type == 'random_forest':
-            #mdl_classifier = RandomForestClassifier(n_estimators=5,max_depth=2,random_state=1)
-            mdl_classifier = RandomForestClassifier()
+            mdl_classifier = RandomForestClassifier(max_depth = tree_depth)
         if classifier_type == 'xgb':
             from whyshift import fetch_model
             mdl_classifier = fetch_model('xgb')
@@ -98,16 +98,15 @@ class Conformal_Prediction:
             get the estimate weight of training sample X and test sample x
             """
             X_all=np.concatenate([sample_X,x],axis=0)
-            #p=rf_classifier.predict_proba(X_all)
             p = mdl_classifier.predict_proba(X_all)
             p = np.maximum(p, 1e-10) # avoid division by zero
             
             return (P0/P1)*(p[:,1]/p[:,0])
         self.w=w
-        #p=rf_classifier.predict_proba(merged_X)
-        p=mdl_classifier.predict_proba(merged_X)
+        p = mdl_classifier.predict_proba(merged_X)
         p = np.maximum(p, 1e-10) # avoid division by zero
-        self.shiftrho=self.rho+self.f((P0/P1)*(p[:P0,1]/p[:P0,0])).mean()  #estimate parameter rho for robust CP
+        if(self.f_type == 'kl'):
+            self.shiftrho = self.rho + np.log((P0/P1)*(p[P0:(P0+P1),1]/p[P0:(P0+P1),0])).mean()  #estimate parameter rho for robust CP
         self.shiftx=shift_X
 
     def get_model(self,X,y,model_type):
@@ -142,7 +141,6 @@ class Conformal_Prediction:
         
         U=np.random.uniform(size = np.shape(X_train)[0])
         gp = base_forest.QuantileRegressionForest()
-        ## Y_train=np.abs(Y_train-self.model_u.predict(X_train))
         Y_train = self.score(X_train,Y_train,self.model_u, U)
         gp.fit(X_train,Y_train)
         y_list = np.sort(Y_train)
@@ -163,7 +161,6 @@ class Conformal_Prediction:
         X_dim = samples.shape[1]-1
         X=samples[:,:X_dim]
         Y=samples[:,X_dim]
-        ## Ss=np.abs(Y-model_u.predict(X))
         U = np.random.uniform(size = np.shape(X)[0])
         Ss = self.score(X,Y,self.model_u,U)
         Weights=self.w([X[0]])
@@ -203,15 +200,12 @@ class Conformal_Prediction:
         X_dim = samples.shape[1]-1
         X = samples[:,:X_dim]
         Y = samples[:,X_dim]
-        ## Ss=np.abs(Y-model_u.predict(X))
         Ss = self.score(X,Y,model_u,self.u)
         if type=='0': # standard CP
 
             Ss=np.concatenate([Ss, np.array([self.smax])])
             weq=np.ones_like(Ss)
             quantile=quantile_weighted(Ss,weq,1-self.alpha)
-            #uX=model_u.predict(shift_X)
-            #return np.concatenate([(uX-quantile).reshape(-1,1),(uX+quantile).reshape(-1,1)],axis=1)
 
         elif type=='1': # weighted CP
 
@@ -219,16 +213,12 @@ class Conformal_Prediction:
             Weights=Weights/np.sum(Weights)
             Ss=np.concatenate([Ss, np.array([self.smax])])
             quantile=quantile_weighted(Ss,Weights,1-self.alpha)
-            #uX=model_u.predict(shift_X)
-            #return np.concatenate([(uX-quantile).reshape(-1,1),(uX+quantile).reshape(-1,1)],axis=1)
 
         elif type=='2': # robust CP
 
             Ss=np.concatenate([Ss, np.array([self.smax])])
             weq=np.ones_like(Ss)
             quantile=quantile_weighted(Ss,weq,self.invg(1-self.alpha,self.shiftrho))
-            ## uX=model_u.predict(shift_X)
-            ## return np.concatenate([(uX-quantile).reshape(-1,1),(uX+quantile).reshape(-1,1)],axis=1)
 
         elif type=='3': #weighted robust CP
 
@@ -236,14 +226,10 @@ class Conformal_Prediction:
             Weights=Weights/np.sum(Weights)
             Ss=np.concatenate([Ss, np.array([self.smax])])
             quantile=quantile_weighted(Ss,Weights,self.invg(1-self.alpha,self.rho))
-            ## uX=model_u.predict(shift_X)
-            ## return np.concatenate([(uX-quantile).reshape(-1,1),(uX+quantile).reshape(-1,1)],axis=1)
 
         elif type=='4': #DR weighted robust CP
             
             quantile = self.q
-            ## uX=model_u.predict(shift_X)
-            ## return np.concatenate([(uX-self.q).reshape(-1,1),(uX+self.q).reshape(-1,1)],axis=1)
 
         return quantile
     

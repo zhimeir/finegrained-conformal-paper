@@ -1,13 +1,9 @@
 from whyshift import get_data
 import pandas as pd
 import numpy as np
-import os
-# os.chdir("./code")
 from sklearn.model_selection import train_test_split, ParameterGrid
-import warnings
 from utils import Conformal_Prediction
 import argparse
-# warnings.filterwarnings("ignore", category=FutureWarning, message="`max_features='auto'` has been deprecated*")
 
 """ Configurations of the current run """
 parser = argparse.ArgumentParser('')
@@ -62,7 +58,7 @@ for seed in range(N):
     samples = np.concatenate([X_train, y_train.reshape(-1,1)], axis=1) # whole training data
     train_row_index = np.random.choice(np.shape(samples)[0], size = n, replace=False) 
     train_data_=samples[train_row_index,:] # randomly select part of training data to construct prediction interval
-    obj = Conformal_Prediction(train_data_, alpha, rho, 'chi_square', 'aps')
+    obj = Conformal_Prediction(train_data_, alpha, rho, 'kl', 'aps')
     samples = np.concatenate([X_test, y_test.reshape(-1,1)], axis=1) # calibration data for weight function, etc
     X = all_shiftsamples[:,:dim]
     y = all_shiftsamples[:,dim]

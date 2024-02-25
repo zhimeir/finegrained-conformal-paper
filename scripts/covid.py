@@ -16,7 +16,7 @@ parser = argparse.ArgumentParser('')
 parser.add_argument('--task_id', type=int, default=1)
 args = parser.parse_args()
 task_id = args.task_id - 1 
-params = {'rho': [0.025, 0.03, 0.035, 0.04], 'grp': range(1, 11)}
+params = {'rho': [0.005, 0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04], 'grp': range(1, 11)}
 params_grid = list(ParameterGrid(params))
 rho = params_grid[task_id]['rho']
 seed_group = params_grid[task_id]['grp']
@@ -72,7 +72,7 @@ for seed in range(N):
     y=all_samples[:,dim]
     X_train,X_test,y_train,y_test = train_test_split(X, y, test_size=0.5, random_state = this_seed)
     samples = np.concatenate([X_train,y_train.reshape(-1,1)],axis=1)
-    obj = Conformal_Prediction(samples, alpha, rho, 'chi_square', "cmr")
+    obj = Conformal_Prediction(samples, alpha, rho, 'kl', "cmr")
     samples = np.concatenate([X_test,y_test.reshape(-1,1)],axis=1)
     X = all_shiftsamples[:,:dim]
     y = all_shiftsamples[:,dim]

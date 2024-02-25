@@ -10,7 +10,7 @@ parser = argparse.ArgumentParser('')
 parser.add_argument('--task_id', type = int, default = 1)
 args = parser.parse_args()
 task_id = args.task_id - 1 
-params = {'rho': [0.005, 0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04], 'grp': range(1, 21)}
+params = {'rho': [0.001, 0.005, 0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04], 'grp': range(1, 21)}
 params_grid = list(ParameterGrid(params))
 rho = params_grid[task_id]['rho']
 seed_group = params_grid[task_id]['grp']
@@ -20,7 +20,7 @@ seed_group = params_grid[task_id]['grp']
 alpha = 0.2 # level of the test
 N = 5 ## number of seeds
 df = pd.read_csv('../datasets/nslm_semi_synthetic.csv')
-observe_feature = ['S3', 'C1', 'C2', 'C3', 'X3', 'X4', 'X5', 'Y1'] #, 'XC', 'X1', 'X2']
+observe_feature = ['S3', 'XC', 'C1', 'C2', 'C3', 'X3', 'X4', 'X5', 'Y1'] #, 'X1', 'X2']
 treated = df[df['Z']==1]
 untreated = df[df['Z']==0]
 all_samples = treated[observe_feature].values
@@ -44,8 +44,6 @@ len2 = [0] * N
 len3 = [0] * N
 len4 = [0] * N
 
-# n = 1500 
-# m = 1000
 
 """ Main experiment """
 for seed in range(N):
@@ -59,13 +57,13 @@ for seed in range(N):
     y=all_samples[:,dim]
     X_train,X_test,y_train,y_test = train_test_split(X, y, test_size = 0.5, random_state = this_seed)
     samples = np.concatenate([X_train,y_train.reshape(-1,1)],axis=1)
-    obj = Conformal_Prediction(samples, alpha, rho, 'chi_square', "cmr")
+    obj = Conformal_Prediction(samples, alpha, rho, 'kl', "cmr")
     samples = np.concatenate([X_test,y_test.reshape(-1,1)],axis=1)
     X = all_shiftsamples[:,:dim]
     y = all_shiftsamples[:,dim]
     X_train,X_test,y_train,y_test = train_test_split(X, y, test_size = 0.5, random_state = this_seed)
     shiftsamples = np.concatenate([X_test,y_test.reshape(-1,1)],axis=1)
-    obj.initial(samples[:,:-1],shiftsamples[:,:-1],samples[:,-1],'random_forest', 'random_forest')
+    obj.initial(samples[:,:-1],shiftsamples[:,:-1],samples[:,-1],'random_forest', 'random_forest', 5)
     shiftsamples=np.concatenate([X_train,y_train.reshape(-1,1)],axis=1)
     for type in ['0', '1', '2', '3', '4']:
         if type=='0':
@@ -100,7 +98,7 @@ lens = np.transpose(np.array([len0,len1,len2,len3,len4]))
 coverage = pd.DataFrame(coverage)
 lens = pd.DataFrame(lens)
 
-set_name = 'nslm_XCX1X2_rho_' + str(rho*1000) + '_grp_' + str(seed_group)
+set_name = 'nslm_rho_' + str(rho*1000) + '_grp_' + str(seed_group)
 coverage.to_csv('../results/' + set_name + '_cov.csv')
 lens.to_csv('../results/' + set_name +  '_lens.csv')
 
